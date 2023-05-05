@@ -16,5 +16,5 @@ class Foods(db.Model):
             "title": self.title,
             "description": self.description,
             "price": self.price,
-            "image_url": f"http://{request.host}/static/{self.image_url}"
+            "image_url": f"http://{request.host}/static/images/foods/{self.image_url}"
         }

@@ -16,3 +16,8 @@ migrate = Migrate(app, db)
 from src.blueprint import root_blueprint
 
 app.register_blueprint(root_blueprint)
+
+
+@app.route("/", methods=["GET"])
+def get_home():
+    return "Simple food API"
