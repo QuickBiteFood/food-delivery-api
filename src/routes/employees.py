@@ -1,9 +1,38 @@
+from datetime import datetime, timedelta
+from functools import wraps
+
 import src.models.employees as employees_model
 from flask import jsonify, request
-from app import db
+from app import db, app
+import jwt
 
-""" DEV FEATURE - Not secure without JWT System """
-def get_employees():
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'Authorization' in request.headers:
+            token = request.headers['Authorization']
+        if not token:
+            return jsonify({"message": "Токен не указан"}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_employee = employees_model.Employees.query.filter_by(public_id=data['public_id']).first()
+
+        except:
+            return jsonify({
+                'message': 'Неверный токен'
+            }), 401
+
+        return f(current_employee, *args, **kwargs)
+
+    return decorated
+
+
+@token_required
+def get_employees(current_employee):
     employees = employees_model.Employees.query.all()
     employees_serialized = []
 
@@ -16,7 +45,8 @@ def get_employees():
     return jsonify(employees_serialized)
 
 
-def get_employee_by_id(id):
+@token_required
+def get_employee_by_id(current_employee, id: int):
     employee = employees_model.Employees.query.get(id)
 
     if employee is None:
@@ -61,14 +91,12 @@ def auth_employee():
         return "Такого пользователя не существует"
 
     if employee.check_password(password):
-        employee_data = {
-            "firstname": employee.firstname,
-            "lastname": employee.lastname,
-            "phone": employee.phone,
-            "email": employee.email
-        }
+        token = jwt.encode({
+            "public_id": employee.public_id,
+            "exp": datetime.utcnow() + timedelta(minutes=30)
+        }, app.config["SECRET_KEY"])
 
-        return jsonify(employee_data)
+        return jsonify({"token": token})
 
     return "Неверный логин или пароль", 404
 

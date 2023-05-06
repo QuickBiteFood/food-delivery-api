@@ -1,8 +1,10 @@
 from app import db
 from werkzeug.security import check_password_hash, generate_password_hash
+from uuid import uuid4
 
 class Employees(db.Model):
     id = db.Column("id", db.Integer, primary_key=True, unique=True)
+    public_id = db.Column("public_id", db.String, nullable=False, default=str(uuid4()))
     firstname = db.Column("firstname", db.String, nullable=False)
     lastname = db.Column("lastname", db.String, nullable=True)
 

@@ -1,8 +1,36 @@
-import src.models.foods as food_model
+from functools import wraps
 
-from app import db
+import jwt
+
+import src.models.foods as food_model
+import src.models.employees as employees_model
+
+from app import db, app
 from flask import jsonify, request, render_template
 from uuid import uuid1
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({"message": "Токен не указан"}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = employees_model.Employees.query.filter_by(public_id=data['public_id']).first()
+
+        except:
+            return "Во время генерации токена произошла ошибка", 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
 
 def get_foods():
     foods = food_model.Foods.query.all()
@@ -23,8 +51,8 @@ def get_food_by_id(id: int):
 
     return jsonify(food.serialize)
 
-
-def delete_food(id: int):
+@token_required
+def delete_food(current_employee, id: int):
     try:
         food = food_model.Foods.query.get(id)
 
@@ -103,4 +131,3 @@ routes = [
         }
     }
 ]
-
