@@ -2,10 +2,15 @@ from flask import Blueprint
 
 root_blueprint = Blueprint('root_blueprint', __name__)
 
-from src.routes.foods import routes as food_routes
-from src.routes.employees import routes as employees_routes
+import src.routes.foods
+import src.routes.employees
+import src.routes.orders
 
-routes = food_routes + employees_routes
+food_routes = src.routes.foods.routes
+employees_routes = src.routes.employees.routes
+order_routes = src.routes.orders.routes
+
+routes = food_routes + employees_routes + order_routes
 
 for root in routes:
     root_blueprint.add_url_rule(

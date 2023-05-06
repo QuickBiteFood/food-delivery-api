@@ -3,7 +3,7 @@ from functools import wraps
 
 import src.models.employees as employees_model
 from flask import jsonify, request
-from app import db, app
+from app import app, db
 import jwt
 
 

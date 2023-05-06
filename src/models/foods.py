@@ -1,13 +1,13 @@
-from app import db
+import app
 from flask import request
 
 
-class Foods(db.Model):
-    id = db.Column("id", db.Integer, primary_key=True)
-    title = db.Column("title", db.String, nullable=False)
-    description = db.Column("description", db.String, nullable=True)
-    price = db.Column("price", db.Float, nullable=False)
-    image_url = db.Column("image_url", db.String, nullable=True)
+class Foods(app.db.Model):
+    id = app.db.Column("id", app.db.Integer, primary_key=True)
+    title = app.db.Column("title", app.db.String, nullable=False)
+    description = app.db.Column("description", app.db.String, nullable=True)
+    price = app.db.Column("price", app.db.Float, nullable=False)
+    image_url = app.db.Column("image_url", app.db.String, nullable=True)
 
     @property
     def serialize(self):

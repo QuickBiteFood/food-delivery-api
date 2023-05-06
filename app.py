@@ -1,4 +1,3 @@
-from functools import wraps
 from os import getenv
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -12,6 +11,8 @@ app.debug = True
 
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.config["SECRET_KEY"] = "123"
+
+print(app.config["SECRET_KEY"])
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)

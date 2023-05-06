@@ -1,14 +1,12 @@
 from functools import wraps
-
 import jwt
 
 import src.models.foods as food_model
 import src.models.employees as employees_model
 
-from app import db, app
-from flask import jsonify, request, render_template
+from app import app, db
+from flask import jsonify, request, render_template, json
 from uuid import uuid1
-
 
 def token_required(f):
     @wraps(f)
@@ -32,6 +30,7 @@ def token_required(f):
 
     return decorated
 
+
 def get_foods():
     foods = food_model.Foods.query.all()
 
@@ -51,6 +50,7 @@ def get_food_by_id(id: int):
 
     return jsonify(food.serialize)
 
+
 @token_required
 def delete_food(current_employee, id: int):
     try:
@@ -62,7 +62,7 @@ def delete_food(current_employee, id: int):
         food_model.Foods.query.filter_by(id=id).delete()
         db.session.commit()
 
-    except Exception as db_error:
+    except:
         db.session.rollback()
         db.session.flush()
 
@@ -71,7 +71,8 @@ def delete_food(current_employee, id: int):
     return "Товар был успешно удален", 200
 
 
-def add_food():
+@token_required
+def add_food(current_employee):
     title = request.form.get("title")
     description = request.form.get("description")
     price = request.form.get("price")
