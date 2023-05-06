@@ -1,36 +1,10 @@
-from functools import wraps
-import jwt
-
 import src.models.orders as orders_models
 import src.models.foods as foods_models
-import src.models.employees as employees_model
-
 from flask import jsonify, request
+from src.blueprint import token_required
 
-from app import app, db
-
-
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
-
-        if not token:
-            return jsonify({"message": "Токен не указан"}), 401
-
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-            current_user = employees_model.Employees.query.filter_by(public_id=data['public_id']).first()
-
-        except:
-            return "Во время генерации токена произошла ошибка", 401
-
-        return f(current_user, *args, **kwargs)
-
-    return decorated
+from app import db
+from src.utils import generate_message_response
 
 
 @token_required
@@ -103,22 +77,21 @@ def get_not_finished_orders():
     return jsonify(orders_serialized)
 
 
-@token_required
 def add_order():
-    order_data = request.json
+    order_data = request.get_json()
 
-    user_name = order_data["user_name"]
-    user_phone = order_data["user_phone"]
-    delivery_address = order_data["delivery_address"]
-    payment_type = order_data["payment_type"]
+    user_name = order_data.get("user_name")
+    user_phone = order_data.get("user_phone")
+    delivery_address = order_data.get("delivery_address")
+    payment_type = order_data.get("payment_type")
 
-    cart = order_data["cart"]
+    cart = order_data.get("cart")
 
-    if user_phone is None or delivery_address is None:
-        return "Не хватает данных для создания заказа"
+    if not user_phone or not delivery_address:
+        return generate_message_response("Не хватает данных для создания заказа", 404)
 
-    if cart is None:
-        return "Невозможно создать заказ с пустой корзиной товаров"
+    if not cart:
+        return generate_message_response("Невозможно создать заказ с пустой корзиной товаров", 404)
 
     new_order = orders_models.Orders(user_name=user_name, user_phone=user_phone, delivery_address=delivery_address, payment_type=payment_type)
 
@@ -139,9 +112,9 @@ def add_order():
         db.session.rollback()
         db.session.flush()
 
-        return "Во время создания заказа произошла ошибка"
+        return generate_message_response("Во время создания заказа произошла ошибка", 404)
 
-    return "Заказ был успешно принят"
+    return generate_message_response("Заказ был успешно принят")
 
 
 @token_required
@@ -150,7 +123,7 @@ def set_order_as_finished(id):
     order.is_finished = True
 
     if not order:
-        return f"Заказ под номером {order.id} не существует"
+        return generate_message_response(f"Заказ под номером {order.id} не существует", 403)
 
     try:
         db.session.commit()
@@ -159,9 +132,9 @@ def set_order_as_finished(id):
         db.session.rollback()
         db.session.flush()
 
-        return "Во время завершения заказа произошла ошибка"
+        return generate_message_response("Во время завершения заказа произошла ошибка", 404)
 
-    return "Заказ был успешно завершен"
+    return generate_message_response("Заказ был успешно завершен")
 
 
 routes = [

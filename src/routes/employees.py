@@ -1,34 +1,12 @@
 from datetime import datetime, timedelta
-from functools import wraps
 
 import src.models.employees as employees_model
 from flask import jsonify, request
 from app import app, db
 import jwt
+from src.blueprint import token_required
 
-
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
-        if not token:
-            return jsonify({"message": "Токен не указан"}), 401
-
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-            current_employee = employees_model.Employees.query.filter_by(public_id=data['public_id']).first()
-
-        except:
-            return jsonify({
-                'message': 'Неверный токен'
-            }), 401
-
-        return f(current_employee, *args, **kwargs)
-
-    return decorated
+from src.utils import generate_message_response
 
 
 @token_required
@@ -37,7 +15,7 @@ def get_employees(current_employee):
     employees_serialized = []
 
     if len(employees) == 0:
-        return "Данных о сотрудниках не существует"
+        return generate_message_response("Данных о сотрудниках не существует", 403)
 
     for employee in employees:
         employees_serialized.append(employee.safe_serialized)
@@ -50,7 +28,7 @@ def get_employee_by_id(current_employee, id: int):
     employee = employees_model.Employees.query.get(id)
 
     if employee is None:
-        return "Такого сотрудника не существует", 404
+        return generate_message_response("Такого сотрудника не существует", 403)
 
     return jsonify(employee.safe_serialized)
 
@@ -64,7 +42,7 @@ def register_employee():
     password = request.form.get("password")
 
     if firstname is None or phone is None or login is None or password is None:
-        return "Заполните все требуемые данные для добавления сотрудника", 404
+        return generate_message_response("Заполните все требуемые данные для добавления сотрудника", 404)
 
     employee = employees_model.Employees(firstname, phone, login, password, lastname=lastname, email=email)
 
@@ -76,9 +54,9 @@ def register_employee():
         db.session.rollback()
         db.session.flush()
 
-        return "Ошибка при добавлении сотрудника", 404
+        return generate_message_response("Ошибка при добавлении сотрудника", 404)
 
-    return "Сотрудник был успешно добавлен"
+    return generate_message_response("Сотрудник был успешно добавлен")
 
 
 def auth_employee():
@@ -88,17 +66,17 @@ def auth_employee():
     employee = employees_model.Employees.query.filter_by(login=login).first()
 
     if not employee:
-        return "Такого пользователя не существует"
+        return generate_message_response("Такого пользователя не существует", 403)
 
     if employee.check_password(password):
         token = jwt.encode({
             "public_id": employee.public_id,
-            "exp": datetime.utcnow() + timedelta(minutes=30)
+            "exp": datetime.utcnow() + timedelta(app.config["TOKEN_EXP"])
         }, app.config["SECRET_KEY"])
 
         return jsonify({"token": token})
 
-    return "Неверный логин или пароль", 404
+    return generate_message_response("Неверный логин или пароль", 404)
 
 
 routes = [

@@ -6,11 +6,12 @@ from flask_migrate import Migrate
 
 load_dotenv()
 
-app = Flask(__name__, template_folder="src/templates")
+app = Flask(__name__)
 app.debug = True
 
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.config["SECRET_KEY"] = "123"
+app.config["TOKEN_EXP"] = 120  # minutes
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)

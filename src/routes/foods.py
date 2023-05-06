@@ -5,8 +5,10 @@ import src.models.foods as food_model
 import src.models.employees as employees_model
 
 from app import app, db
-from flask import jsonify, request, render_template, json
+from flask import jsonify, request, render_template
 from uuid import uuid1
+
+from src.utils import generate_message_response
 
 def token_required(f):
     @wraps(f)
@@ -17,14 +19,14 @@ def token_required(f):
             token = request.headers['x-access-token']
 
         if not token:
-            return jsonify({"message": "Токен не указан"}), 401
+            return generate_message_response("Токен не указан", 401)
 
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user = employees_model.Employees.query.filter_by(public_id=data['public_id']).first()
 
         except:
-            return "Во время генерации токена произошла ошибка", 401
+            return generate_message_response("Срок действия токена истек или токен невалиден", 401)
 
         return f(current_user, *args, **kwargs)
 
@@ -46,7 +48,7 @@ def get_food_by_id(id: int):
     food = food_model.Foods.query.get(id)
 
     if food is None:
-        return "Такого товара не существует", 404
+        return generate_message_response("Такого товара не существует", 403)
 
     return jsonify(food.serialize)
 
@@ -57,7 +59,7 @@ def delete_food(current_employee, id: int):
         food = food_model.Foods.query.get(id)
 
         if food is None:
-            return "Такого товара не существует", 404
+            return generate_message_response("Такого товара не существует", 403)
 
         food_model.Foods.query.filter_by(id=id).delete()
         db.session.commit()
@@ -66,9 +68,9 @@ def delete_food(current_employee, id: int):
         db.session.rollback()
         db.session.flush()
 
-        return "Ошибка во время выполнения операции", 404
+        return generate_message_response("Ошибка во время выполнения операции", 500)
 
-    return "Товар был успешно удален", 200
+    return generate_message_response("Товар был успешно удален")
 
 
 @token_required
@@ -78,8 +80,8 @@ def add_food(current_employee):
     price = request.form.get("price")
     food_image = request.files.get("food_image")
 
-    if title is None or description is None or price is None or food_image is None:
-        return render_template("error.html", error_message="Ошибка добавления еды", error_body="Для подробностей просмотрите документацию", documentation_link="https://clck.ru/34Lf2T"), 404
+    if not title or not description or not price or not food_image:
+        return generate_message_response("Недостаточно данных для добавление еды", 404)
 
     try:
         image_name = f"{str(uuid1())}.{food_image.filename.split('.')[1]}"
@@ -90,13 +92,13 @@ def add_food(current_employee):
         db.session.add(food)
         db.session.commit()
 
-    except Exception as db_error:
+    except Exception:
         db.session.rollback()
         db.session.flush()
 
-        return "Во время добавления товара произошла ошибка", 404
+        return generate_message_response("Во время добавления товара произошла ошибка", 500)
 
-    return "Товар был успешно добавлен!"
+    return generate_message_response("Товар был успешно добавлен")
 
 
 routes = [

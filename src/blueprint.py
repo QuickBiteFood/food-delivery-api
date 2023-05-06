@@ -1,6 +1,37 @@
-from flask import Blueprint
+from functools import wraps
+
+import jwt
+from flask import Blueprint, request, jsonify
+
+from app import app
+
+import src.models.employees as employees_model
 
 root_blueprint = Blueprint('root_blueprint', __name__)
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({"message": "Токен не указан"}), 401
+
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = employees_model.Employees.query.filter_by(public_id=data['public_id']).first()
+
+        except:
+            return jsonify({
+                "message": "Срок действия токена истек или токен невалиден"
+            }), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
 
 import src.routes.foods
 import src.routes.employees
