@@ -12,8 +12,6 @@ app.debug = True
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 app.config["SECRET_KEY"] = "123"
 
-print(app.config["SECRET_KEY"])
-
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -24,4 +22,4 @@ app.register_blueprint(root_blueprint)
 
 @app.route("/", methods=["GET"])
 def handle_home_root():
-    return "Простое API = Food Delivery"
+    return jsonify({"message": "Простая Restfull API для системы доставки еды"})
