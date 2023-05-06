@@ -22,7 +22,15 @@ def get_employee_by_id(id):
     if employee is None:
         return "Такого сотрудника не существует", 404
 
-    return jsonify(employee)
+    employee_data = {
+        "id": employee.id,
+        "firstname": employee.firstname,
+        "lastname": employee.lastname,
+        "phone": employee.phone,
+        "email": employee.email,
+    }
+
+    return jsonify(employee_data)
 
 
 def register_employee():
@@ -48,7 +56,7 @@ def register_employee():
 
         return "Ошибка при добавлении сотрудника", 404
 
-    return "Сотрудник был успещно добавлен"
+    return "Сотрудник был успешно добавлен"
 
 
 def auth_employee():
