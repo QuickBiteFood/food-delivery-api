@@ -11,7 +11,7 @@ def get_employees():
         return "Данных о сотрудниках не существует"
 
     for employee in employees:
-        employees_serialized.append(employee.serialize)
+        employees_serialized.append(employee.safe_serialized)
 
     return jsonify(employees_serialized)
 
@@ -22,15 +22,7 @@ def get_employee_by_id(id):
     if employee is None:
         return "Такого сотрудника не существует", 404
 
-    employee_data = {
-        "id": employee.id,
-        "firstname": employee.firstname,
-        "lastname": employee.lastname,
-        "phone": employee.phone,
-        "email": employee.email,
-    }
-
-    return jsonify(employee_data)
+    return jsonify(employee.safe_serialized)
 
 
 def register_employee():

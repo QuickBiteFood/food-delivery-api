@@ -32,5 +32,15 @@ class Employees(db.Model):
             "password": self.password
         }
 
+    @property
+    def safe_serialized(self):
+        return {
+            "id": self.id,
+            "firstname": self.firstname,
+            "lastname": self.lastname,
+            "phone": self.phone,
+            "email": self.email
+        }
+
     def check_password(self, password):
         return check_password_hash(self.password, password)
