@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Food-delivery-API Error</title>
+    <style>
+        body {
+            height: 100vh;
+        }
+
+        section {
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            row-gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <section>
+        <div>
+            <b>
+                {{error_message}}
+            </b>
+        </div>
+
+        <div>
+            {{error_body}}
+        </div>
+
+        <div>
+            <a href="{{documentation_link}}">Документация</a>
+        </div>
+    </section>
+</body>
+</html>

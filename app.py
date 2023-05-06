@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="src/templates")
 app.debug = True
 app.config["SQLALCHEMY_DATABASE_URI"] = getenv("DATABASE_URL")
 
@@ -19,5 +19,5 @@ app.register_blueprint(root_blueprint)
 
 
 @app.route("/", methods=["GET"])
-def get_home():
-    return "Simple food API"
+def handle_home_root():
+    return "Простое API = Food Delivery"

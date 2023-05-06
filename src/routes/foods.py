@@ -1,7 +1,7 @@
 import src.models.foods as food_model
 
 from app import db
-from flask import jsonify, request, Response
+from flask import jsonify, request, render_template
 from uuid import uuid1
 
 def get_foods():
@@ -47,11 +47,14 @@ def add_food():
     title = request.form.get("title")
     description = request.form.get("description")
     price = request.form.get("price")
-    image = request.files['food_image']
+    food_image = request.files.get("food_image")
+
+    if title is None or description is None or price is None or food_image is None:
+        return render_template("error.html", error_message="Ошибка добавления еды", error_body="Для подробностей просмотрите документацию", documentation_link="https://clck.ru/34Lf2T"), 404
 
     try:
-        image_name = f"{str(uuid1())}.{image.filename.split('.')[1]}"
-        image.save(f"static/images/foods/{image_name}")
+        image_name = f"{str(uuid1())}.{food_image.filename.split('.')[1]}"
+        food_image.save(f"static/images/foods/{image_name}")
 
         food = food_model.Foods(title=title, description=description, price=price, image_url=image_name)
 
@@ -61,8 +64,6 @@ def add_food():
     except Exception as db_error:
         db.session.rollback()
         db.session.flush()
-
-        print(db_error)
 
         return "Во время добавления товара произошла ошибка", 404
 
@@ -90,7 +91,7 @@ routes = [
         "rule": "/delete/food/<id>",
         "view_func": delete_food,
         "options": {
-            "methods": ["GET"]
+            "methods": ["DELETE"]
         }
     },
 
