@@ -34,6 +34,18 @@ def get_orders(current_user):
 
 
 @token_required
+def get_current_user_orders(current_user):
+    orders = orders_models.Orders.query.filter_by(user_id=current_user.id).all()
+
+    orders_serialized = []
+
+    for order in orders:
+        orders_serialized.append(order.serialize)
+
+    return jsonify(orders_serialized)
+
+
+@token_required
 def get_order_by_id(current_user, id):
     order = orders_models.Orders.query.get(id)
     order_cart = orders_models.OrdersCarts.query.filter_by(order_id=order.id).all()
@@ -165,6 +177,14 @@ routes = [
     {
         "rule": "/get/order/<id>",
         "view_func": get_order_by_id,
+        "options": {
+            "methods": ["GET"]
+        }
+    },
+
+    {
+        "rule": "/get/current/user/orders",
+        "view_func": get_current_user_orders,
         "options": {
             "methods": ["GET"]
         }
