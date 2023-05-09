@@ -94,21 +94,5 @@ routes = [
         "options": {
             "methods": ["GET"]
         }
-    },
-
-    {
-        "rule": "/register/employee",
-        "view_func": register_employee,
-        "options": {
-            "methods": ["POST"]
-        }
-    },
-
-    {
-        "rule": "/auth/employee",
-        "view_func": auth_employee,
-        "options": {
-            "methods": ["POST"]
-        }
     }
 ]

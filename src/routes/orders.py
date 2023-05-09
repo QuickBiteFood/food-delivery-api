@@ -8,7 +8,7 @@ from src.utils import generate_message_response
 
 
 @token_required
-def get_orders():
+def get_orders(current_user):
     orders = orders_models.Orders.query.all()
     orders_carts = orders_models.OrdersCarts.query.all()
 
@@ -34,7 +34,7 @@ def get_orders():
 
 
 @token_required
-def get_order_by_id(id):
+def get_order_by_id(current_user, id):
     order = orders_models.Orders.query.get(id)
     order_cart = orders_models.OrdersCarts.query.filter_by(order_id=order.id).all()
     order_cart_foods = []
@@ -77,23 +77,23 @@ def get_not_finished_orders():
     return jsonify(orders_serialized)
 
 
-def add_order():
+@token_required
+def add_order(current_user):
     order_data = request.get_json()
 
-    user_name = order_data.get("user_name")
-    user_phone = order_data.get("user_phone")
+    user_id = current_user.id
     delivery_address = order_data.get("delivery_address")
     payment_type = order_data.get("payment_type")
 
     cart = order_data.get("cart")
 
-    if not user_phone or not delivery_address:
+    if not user_id or not delivery_address:
         return generate_message_response("Не хватает данных для создания заказа", 404)
 
     if not cart:
         return generate_message_response("Невозможно создать заказ с пустой корзиной товаров", 404)
 
-    new_order = orders_models.Orders(user_name=user_name, user_phone=user_phone, delivery_address=delivery_address, payment_type=payment_type)
+    new_order = orders_models.Orders(user_id=user_id, delivery_address=delivery_address, payment_type=payment_type)
 
     try:
         db.session.add(new_order)

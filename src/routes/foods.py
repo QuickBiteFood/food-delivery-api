@@ -2,35 +2,13 @@ from functools import wraps
 import jwt
 
 import src.models.foods as food_model
-import src.models.employees as employees_model
+from src.blueprint import token_required
 
-from app import app, db
-from flask import jsonify, request, render_template
+from app import db
+from flask import jsonify, request
 from uuid import uuid1
 
 from src.utils import generate_message_response
-
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
-
-        if not token:
-            return generate_message_response("Токен не указан", 401)
-
-        try:
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-            current_user = employees_model.Employees.query.filter_by(public_id=data['public_id']).first()
-
-        except:
-            return generate_message_response("Срок действия токена истек или токен невалиден", 401)
-
-        return f(current_user, *args, **kwargs)
-
-    return decorated
 
 
 def get_foods():

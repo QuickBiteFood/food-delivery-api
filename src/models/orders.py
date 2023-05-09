@@ -6,8 +6,7 @@ class Orders(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     public_id = db.Column("public_id", db.String, nullable=False, default=str(uuid4()))
 
-    user_name = db.Column("user_name", db. String, nullable=True)
-    user_phone = db.Column("user_phone", db.String, nullable=False)
+    user_id = db.Column("user_id", db.Integer, db.ForeignKey("users.id"))
     delivery_address = db.Column("delivery_address", db.String, nullable=False)
     payment_type = db.Column("payment_type", db.String, nullable=True)
 
@@ -18,8 +17,7 @@ class Orders(db.Model):
         return {
             "id": self.id,
             "public_id": self.public_id,
-            "user_name": self.user_name,
-            "user_phone": self.user_phone,
+            "user_id": self.user_id,
             "delivery_address": self.delivery_address,
             "is_finished": self.is_finished
         }

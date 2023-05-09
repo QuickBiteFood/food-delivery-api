@@ -5,7 +5,7 @@ from flask import Blueprint, request, jsonify
 
 from app import app
 
-import src.models.employees as employees_model
+import src.models.users as users_model
 
 root_blueprint = Blueprint('root_blueprint', __name__)
 
@@ -22,7 +22,7 @@ def token_required(f):
 
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-            current_user = employees_model.Employees.query.filter_by(public_id=data['public_id']).first()
+            current_user = users_model.Users.query.filter_by(public_id=data['public_id']).first()
 
         except:
             return jsonify({
@@ -36,12 +36,14 @@ def token_required(f):
 import src.routes.foods
 import src.routes.employees
 import src.routes.orders
+import src.routes.users
 
 food_routes = src.routes.foods.routes
 employees_routes = src.routes.employees.routes
 order_routes = src.routes.orders.routes
+user_roots = src.routes.users.routes
 
-routes = food_routes + employees_routes + order_routes
+routes = food_routes + employees_routes + order_routes + user_roots
 
 for root in routes:
     root_blueprint.add_url_rule(
