@@ -15,6 +15,8 @@ class Users(db.Model):
     login = db.Column("login", db.String, nullable=False)
     password = db.Column("password", db.String, nullable=False)
 
+    is_employee = db.Column("is_admin", db.Boolean, default=False)
+
     def __init__(self, firstname, phone, login, password, lastname=None, email=None):
         self.firstname = firstname
         self.lastname = lastname
@@ -32,7 +34,8 @@ class Users(db.Model):
             "phone": self.phone,
             "email": self.email,
             "login": self.login,
-            "password": self.password
+            "password": self.password,
+            "is_employee": self.is_employee
         }
 
     @property

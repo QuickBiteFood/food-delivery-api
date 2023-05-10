@@ -1,6 +1,7 @@
 from flask import request, jsonify
 
 import src.models.users as users_model
+
 from src.utils import generate_message_response
 
 import jwt
@@ -16,7 +17,7 @@ def auth_user():
     user = users_model.Users.query.filter_by(login=login).first()
 
     if not user:
-        return generate_message_response("Такого пользователя не существует", 403)
+        return generate_message_response("Такого пользователя не существует", 200)
 
     if user.check_password(password):
         token = jwt.encode({
@@ -26,7 +27,7 @@ def auth_user():
 
         return jsonify({"token": token})
 
-    return generate_message_response("Неверный логин или пароль", 404)
+    return generate_message_response("Неверный логин или пароль", 200)
 
 
 def register_user():
@@ -50,7 +51,7 @@ def register_user():
         db.session.rollback()
         db.session.flush()
 
-        return generate_message_response("Ошибка при регистрации пользователя", 404)
+        return generate_message_response("Ошибка при регистрации пользователя", 200)
 
     return generate_message_response("Пользователь был успешно добавлен")
 

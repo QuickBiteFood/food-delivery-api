@@ -1,5 +1,7 @@
 import src.models.orders as orders_models
 import src.models.foods as foods_models
+import src.models.employees as employees_model
+
 from flask import jsonify, request
 from src.blueprint import token_required
 
@@ -9,6 +11,16 @@ from src.utils import generate_message_response
 
 @token_required
 def get_orders(current_user):
+    employees = employees_model.Employees.query.all()
+    user_is_employee = False
+
+    for employee in employees:
+        if current_user.id == employee.user_id:
+            user_is_employee = True
+
+    if not user_is_employee:
+        return generate_message_response(f"Пользователь не является сотрудником", 200)
+
     orders = orders_models.Orders.query.all()
     orders_carts = orders_models.OrdersCarts.query.all()
 
@@ -41,50 +53,6 @@ def get_current_user_orders(current_user):
 
     for order in orders:
         orders_serialized.append(order.serialize)
-
-    return jsonify(orders_serialized)
-
-
-@token_required
-def get_order_by_id(current_user, id):
-    order = orders_models.Orders.query.get(id)
-    order_cart = orders_models.OrdersCarts.query.filter_by(order_id=order.id).all()
-    order_cart_foods = []
-
-    for cart_item in order_cart:
-        food = foods_models.Foods.query.filter_by(id=cart_item.food_id).first()
-        order_cart_foods.append(food.serialize)
-
-    order_serialized = {
-        **order.serialize,
-        "cart": order_cart_foods
-    }
-
-    return jsonify(order_serialized)
-
-
-@token_required
-def get_not_finished_orders():
-    orders = orders_models.Orders.query.filter_by(is_finished=False)
-    orders_carts = orders_models.OrdersCarts.query.all()
-
-    orders_serialized = []
-
-    for order in orders:
-        cart = []
-
-        for order_cart in orders_carts:
-            if order_cart.order_id == order.id:
-                food = foods_models.Foods.query.filter_by(id=order_cart.food_id).first()
-
-                cart.append(food.serialize)
-
-        orders_serialized.append(
-            {
-                **order.serialize,
-                "cart": cart
-            }
-        )
 
     return jsonify(orders_serialized)
 
@@ -130,12 +98,22 @@ def add_order(current_user):
 
 
 @token_required
-def set_order_as_finished(id):
+def set_order_as_finished(current_user, id):
+    employees = employees_model.Employees.query.all()
+    user_is_employee = False
+
+    for employee in employees:
+        if current_user.id == employee.user_id:
+            user_is_employee = True
+
+    if not user_is_employee:
+        return generate_message_response(f"Пользователь не является сотрудником", 200)
+
     order = orders_models.Orders.query.get(id)
     order.is_finished = True
 
     if not order:
-        return generate_message_response(f"Заказ под номером {order.id} не существует", 403)
+        return generate_message_response(f"Заказ под номером {order.id} не существует", 200)
 
     try:
         db.session.commit()
@@ -146,7 +124,7 @@ def set_order_as_finished(id):
 
         return generate_message_response("Во время завершения заказа произошла ошибка", 404)
 
-    return generate_message_response("Заказ был успешно завершен")
+    return generate_message_response("Заказ был успешно завершен", 200)
 
 
 routes = [
@@ -159,24 +137,8 @@ routes = [
     },
 
     {
-        "rule": "/get/not_finished/order",
-        "view_func": get_not_finished_orders,
-        "options": {
-            "methods": ["GET"]
-        }
-    },
-
-    {
         "rule": "/set/finished/order/<id>",
         "view_func": set_order_as_finished,
-        "options": {
-            "methods": ["GET"]
-        }
-    },
-
-    {
-        "rule": "/get/order/<id>",
-        "view_func": get_order_by_id,
         "options": {
             "methods": ["GET"]
         }
