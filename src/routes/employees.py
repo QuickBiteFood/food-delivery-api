@@ -5,7 +5,6 @@ import src.models.users as users_model
 from flask import jsonify, request
 from app import app, db
 import jwt
-from src.blueprint import token_required
 
 from src.utils import generate_message_response
 

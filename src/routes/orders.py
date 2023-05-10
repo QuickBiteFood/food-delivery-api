@@ -1,6 +1,7 @@
 import src.models.orders as orders_models
 import src.models.foods as foods_models
 import src.models.employees as employees_model
+import src.models.users as users_model
 
 from flask import jsonify, request
 from src.blueprint import token_required
@@ -28,15 +29,16 @@ def get_orders(current_user):
 
     for order in orders:
         cart = []
+        user = users_model.Users.query.filter_by(id=order.user_id).first()
 
         for order_cart in orders_carts:
             if order_cart.order_id == order.id:
                 food = foods_models.Foods.query.filter_by(id=order_cart.food_id).first()
-
                 cart.append(food.serialize)
 
         orders_serialized.append(
             {
+                **user.serialize,
                 **order.serialize,
                 "cart": cart
             }
