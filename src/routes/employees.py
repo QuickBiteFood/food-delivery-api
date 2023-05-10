@@ -44,7 +44,7 @@ def auth_employee():
 routes = [
     {
         "rule": "/auth/employee",
-        "view_func": auth_employee(),
+        "view_func": auth_employee,
         "options": {
             "methods": ["POST"]
         }
