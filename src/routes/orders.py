@@ -38,7 +38,7 @@ def get_orders(current_user):
 
         orders_serialized.append(
             {
-                **user.serialize,
+                **user.safe_serialized,
                 **order.serialize,
                 "cart": cart
             }
