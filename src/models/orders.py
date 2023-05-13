@@ -27,3 +27,4 @@ class OrdersCarts(db.Model):
     id = db.Column("id", db.Integer, primary_key=True)
     order_id = db.Column("order_id", db.Integer, db.ForeignKey("orders.id"))
     food_id = db.Column("food_id", db.Integer, db.ForeignKey("foods.id"))
+    food_count = db.Column("food_count", db.Integer, default=1)

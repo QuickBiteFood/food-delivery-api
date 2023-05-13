@@ -34,7 +34,10 @@ def get_orders(current_user):
         for order_cart in orders_carts:
             if order_cart.order_id == order.id:
                 food = foods_models.Foods.query.filter_by(id=order_cart.food_id).first()
-                cart.append(food.serialize)
+                cart.append({
+                    **food.serialize,
+                    "count": order_cart.food_count
+                })
 
         orders_serialized.append(
             {
@@ -84,7 +87,7 @@ def add_order(current_user):
         new_order_cart_models = []
 
         for cart_item in cart:
-            cart_food_item = orders_models.OrdersCarts(order_id=new_order.id, food_id=cart_item["food_id"])
+            cart_food_item = orders_models.OrdersCarts(order_id=new_order.id, food_id=cart_item["id"], food_count=cart_item["count"])
             new_order_cart_models.append(cart_food_item)
 
         db.session.add_all(new_order_cart_models)
