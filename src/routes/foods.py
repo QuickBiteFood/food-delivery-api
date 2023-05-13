@@ -2,6 +2,7 @@ from functools import wraps
 import jwt
 
 import src.models.foods as food_model
+import src.models.employees as employees_model
 from src.blueprint import token_required
 
 from app import db
