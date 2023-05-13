@@ -33,6 +33,16 @@ def get_food_by_id(id: int):
 
 @token_required
 def delete_food(current_employee, id: int):
+    employees = employees_model.Employees.query.all()
+    user_is_employee = False
+
+    for employee in employees:
+        if current_user.id == employee.user_id:
+            user_is_employee = True
+
+    if not user_is_employee:
+        return generate_message_response(f"Пользователь не является сотрудником", 200)
+
     try:
         food = food_model.Foods.query.get(id)
 
@@ -53,6 +63,16 @@ def delete_food(current_employee, id: int):
 
 @token_required
 def add_food(current_employee):
+    employees = employees_model.Employees.query.all()
+    user_is_employee = False
+
+    for employee in employees:
+        if current_user.id == employee.user_id:
+            user_is_employee = True
+
+    if not user_is_employee:
+        return generate_message_response(f"Пользователь не является сотрудником", 200)
+
     title = request.form.get("title")
     description = request.form.get("description")
     price = request.form.get("price")
