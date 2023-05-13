@@ -33,7 +33,7 @@ def get_food_by_id(id: int):
 
 
 @token_required
-def delete_food(current_employee, id: int):
+def delete_food(current_user, id: int):
     employees = employees_model.Employees.query.all()
     user_is_employee = False
 
@@ -63,7 +63,7 @@ def delete_food(current_employee, id: int):
 
 
 @token_required
-def add_food(current_employee):
+def add_food(current_user):
     employees = employees_model.Employees.query.all()
     user_is_employee = False
 
